@@ -7,6 +7,8 @@ interface newNoteCardProps {
   onNoteCreate: (content: string) => void
 }
 
+let speechRecognition: SpeechRecognition | null = null
+
 export function NewNoteCard({ onNoteCreate }: newNoteCardProps) {
   const [shouldShowOnBoarding, setShouldShowOnBoarding] = useState(true)
   const [content, setContent] = useState('')
@@ -37,12 +39,55 @@ export function NewNoteCard({ onNoteCreate }: newNoteCardProps) {
     toast.success('Nota criada com sucesso')
   }
 
-  function hanldeRecording() {
+  function handleStartRecording() {
+    const isPeechRecognitionAPIAvailable =
+      'speechRecognition' in window || 'webkitSpeechRecognition' in window // verify if  speechRecognition has on navigator
+
+    if (!isPeechRecognitionAPIAvailable) {
+      // alert if this API hasn't on navigator
+      alert('Essa funcionalidade não está disponível para seu navegador')
+    }
+
     setIsRecording(true)
+    setShouldShowOnBoarding(false)
+
+    const SpeechRecognitionAPI =
+      window.SpeechRecognition || window.webkitSpeechRecognition
+
+    speechRecognition = new SpeechRecognitionAPI()
+
+    speechRecognition.lang = 'pt-BR'
+    speechRecognition.continuous = true
+    speechRecognition.maxAlternatives = 1
+    speechRecognition.interimResults = true
+
+    speechRecognition.onresult = (e) => {
+      const transcription = Array.from(e.results).reduce((text, result) => {
+        return text.concat(result[0].transcript)
+      }, '')
+
+      setContent(transcription)
+    }
+
+    speechRecognition.onerror = (e) => {
+      console.error(e)
+    }
+
+    speechRecognition.start()
   }
 
   function handleStopRecording() {
     setIsRecording(false)
+
+    if (speechRecognition !== null) {
+      speechRecognition.stop()
+    }
+  }
+
+  function handleCloseCard() {
+    handleStopRecording()
+    setContent('')
+    setShouldShowOnBoarding(true)
   }
 
   return (
@@ -61,7 +106,10 @@ export function NewNoteCard({ onNoteCreate }: newNoteCardProps) {
         <Dialog.Overlay className="inset-0 fixed bg-black/50" />
 
         <Dialog.Content className="fixed overflow-hidden left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2  max-w-[640px] w-full h-[60vh] rounded-md bg-slate-700 flex flex-col">
-          <Dialog.Close className="absolute right-0 top-0 p-2.5 text-slate-400 hover:text-slate-100">
+          <Dialog.Close
+            className="absolute right-0 top-0 p-2.5 text-slate-400 hover:text-slate-100"
+            onClick={handleCloseCard}
+          >
             <X className="size-5" />
           </Dialog.Close>
 
@@ -76,7 +124,7 @@ export function NewNoteCard({ onNoteCreate }: newNoteCardProps) {
                   Comece{' '}
                   <button
                     className="font-medium text-lime-400 hover:underline"
-                    onClick={hanldeRecording}
+                    onClick={handleStartRecording}
                     type="button"
                   >
                     gravando uma nota
