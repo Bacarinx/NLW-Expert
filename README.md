@@ -1,9 +1,9 @@
 
 # NLW EXPERT
 
+![preview](./.Github/image1.jpeg)
 
 ## Descrição
-
 
 Esse é um projeto realizado durante a "Week evolution" da plataforma de aprendizado Rocketseat. Durante essa semana foram desenvolvidas algumas aplicações, e esta é a aplicação de React. Nessa aplicação foi desenvolvido uma tela de anotações, utilizando as tecnologias React, Typescript e Tailwindcss. 
 
